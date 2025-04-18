@@ -17,7 +17,8 @@ import {
   getCollections,
   getCollectionById,
   updateCollection,
-  deleteCollection
+  deleteCollection,
+  getCollectionsByIds
 } from "./controller/collection";
 
 dotenv.config();
@@ -67,7 +68,8 @@ app.delete("/product/:id", deleteProduct); // Add the delete route
 // collection routes
 app.post("/collection", createCollection); // Create new collection
 app.get("/collections", getCollections); // Get all collections
-app.get("/collection/:id", getCollectionById); // Get collection by ID
+app.get("/collection/:id", getCollectionById); // Get single collection by ID
+app.post("/collections/batch", getCollectionsByIds); // Get multiple collections by IDs
 app.put("/collection/:id", updateCollection); // Update collection
 app.delete("/collection/:id", deleteCollection); // Delete collection
 

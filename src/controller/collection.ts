@@ -186,6 +186,73 @@ export const getCollectionById = async (req: any, res: any): Promise<any> => {
 };
 
 /**
+ * Get multiple collections by IDs
+ * @param req - Express request object with collection IDs in request body
+ * @param res - Express response object
+ * @returns Collections data with full product details
+ */
+export const getCollectionsByIds = async (req: any, res: any): Promise<any> => {
+  try {
+    const { collectionIds } = req.body;
+
+    // Validate request body
+    if (!collectionIds || !Array.isArray(collectionIds) || collectionIds.length === 0) {
+      return res.status(ResponseCode.BAD_REQUEST).json({
+        message: "Request body must include a non-empty array of collection IDs",
+        success: false,
+      });
+    }
+
+    // Initialize collection results
+    const collections = [];
+
+    // Process each collection ID
+    for (const collectionId of collectionIds) {
+      const collectionRef = db.collection(dbName.COLLECTION).doc(collectionId);
+      const collectionDoc = await collectionRef.get();
+
+      if (!collectionDoc.exists) {
+        // Skip non-existent collections
+        continue;
+      }
+
+      const collectionData = collectionDoc.data();
+      const productIds = collectionData?.products || [];
+
+      // Get the complete product data for each product in the collection
+      const productPromises = productIds.map((productId: string) => 
+        db.collection(dbName.PRODUCT).doc(productId).get()
+      );
+      
+      const productResults = await Promise.all(productPromises);
+      const productDetails = productResults
+        .filter(doc => doc.exists)
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+      collections.push({
+        id: collectionDoc.id,
+        ...collectionData,
+        productDetails, // Add full product details
+      });
+    }
+
+    return res.status(ResponseCode.OK).json({
+      collections,
+      success: true,
+    });
+  } catch (err: any) {
+    console.error("Error fetching collections:", err);
+    return res.status(ResponseCode.INTERNAL_SERVER_ERROR).json({
+      message: err.message || "Error fetching collections",
+      success: false,
+    });
+  }
+};
+
+/**
  * Update a collection by ID
  * @param req - Express request object with collection ID parameter and updated data
  * @param res - Express response object
