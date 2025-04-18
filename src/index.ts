@@ -15,6 +15,7 @@ import { upload, uploadSingleImage } from "./controller/multer";
 import {
   createCollection,
   getCollections,
+  getCollectionById,
   updateCollection,
   deleteCollection
 } from "./controller/collection";
@@ -66,6 +67,7 @@ app.delete("/product/:id", deleteProduct); // Add the delete route
 // collection routes
 app.post("/collection", createCollection); // Create new collection
 app.get("/collections", getCollections); // Get all collections
+app.get("/collection/:id", getCollectionById); // Get collection by ID
 app.put("/collection/:id", updateCollection); // Update collection
 app.delete("/collection/:id", deleteCollection); // Delete collection
 
