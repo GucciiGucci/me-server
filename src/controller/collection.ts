@@ -12,9 +12,18 @@ export const createCollection = async (req: any, res: any): Promise<any> => {
   try {
     const { name, description, products, images }: Collection = req.body;
     
+    // Check required fields
     if (!name || !products || !Array.isArray(products) || products.length === 0) {
       return res.status(ResponseCode.BAD_REQUEST).json({
         message: "Name and at least one product ID are required",
+        success: false,
+      });
+    }
+    
+    // Check name length
+    if (name.length > 50) {
+      return res.status(ResponseCode.BAD_REQUEST).json({
+        message: "Collection name cannot exceed 50 characters",
         success: false,
       });
     }
@@ -193,11 +202,36 @@ export const updateCollection = async (req: any, res: any): Promise<any> => {
       });
     }
 
-    const { name, description, products } = req.body;
+    const { name, description, products, images } = req.body;
     const updateData: Partial<Collection> = {};
 
-    if (name !== undefined) updateData.name = name;
+    // Check name length if name is being updated
+    if (name !== undefined) {
+      if (name.length > 50) {
+        return res.status(ResponseCode.BAD_REQUEST).json({
+          message: "Collection name cannot exceed 50 characters",
+          success: false,
+        });
+      }
+      
+      // Check if a collection with this name already exists (excluding current collection)
+      const nameQuery = await db.collection(dbName.COLLECTION)
+        .where("name", "==", name)
+        .get();
+      
+      const duplicates = nameQuery.docs.filter((doc: any) => doc.id !== collectionId);
+      if (duplicates.length > 0) {
+        return res.status(ResponseCode.CONFLICT).json({
+          message: "A collection with this name already exists",
+          success: false,
+        });
+      }
+      
+      updateData.name = name;
+    }
+
     if (description !== undefined) updateData.description = description;
+    if (images !== undefined) updateData.images = images;
     
     if (products !== undefined) {
       if (!Array.isArray(products) || products.length === 0) {

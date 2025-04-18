@@ -21,6 +21,8 @@ export const createProduct = async (req: any, res: any): Promise<any> => {
     tags,
     newCategories,
   }: Product = req.body;
+
+  // Check required fields
   if (!name || !category || !price || !stock || !images.length) {
     return res.status(ResponseCode.BAD_REQUEST).json({
       message: "Name, category, price, stock and images are required",
@@ -28,9 +30,17 @@ export const createProduct = async (req: any, res: any): Promise<any> => {
     });
   }
 
+  // Check name length
+  if (name.length > 50) {
+    return res.status(ResponseCode.BAD_REQUEST).json({
+      message: "Product name cannot exceed 50 characters",
+      success: false,
+    });
+  }
+
   try {
     const productRef = db.collection(dbName.PRODUCT);
-    
+
     // Check if product with same name already exists
     const nameQuery = await productRef.where("name", "==", name).get();
     if (!nameQuery.empty) {
@@ -423,7 +433,17 @@ export const updateProduct = async (req: any, res: any): Promise<any> => {
     // Create update object with only fields that exist in request body
     const updateData: Partial<Product> = {};
 
-    if (name !== undefined) updateData.name = name;
+    // Check name length if name is being updated
+    if (name !== undefined) {
+      if (name.length > 50) {
+        return res.status(ResponseCode.BAD_REQUEST).json({
+          message: "Product name cannot exceed 50 characters",
+          success: false,
+        });
+      }
+      updateData.name = name;
+    }
+
     if (category !== undefined) updateData.category = category;
     if (price !== undefined) updateData.price = price;
     if (stock !== undefined) updateData.stock = stock;
@@ -449,7 +469,7 @@ export const updateProduct = async (req: any, res: any): Promise<any> => {
         .collection(dbName.PRODUCT)
         .where("name", "==", name)
         .get();
-      
+
       // If any other product has this name, reject the update
       if (!nameQuery.empty) {
         return res.status(ResponseCode.CONFLICT).json({
