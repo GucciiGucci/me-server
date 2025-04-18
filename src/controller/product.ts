@@ -30,6 +30,15 @@ export const createProduct = async (req: any, res: any): Promise<any> => {
 
   try {
     const productRef = db.collection(dbName.PRODUCT);
+    
+    // Check if product with same name already exists
+    const nameQuery = await productRef.where("name", "==", name).get();
+    if (!nameQuery.empty) {
+      return res.status(ResponseCode.CONFLICT).json({
+        message: "A product with this name already exists",
+        success: false,
+      });
+    }
 
     const product = {
       name,
@@ -432,6 +441,22 @@ export const updateProduct = async (req: any, res: any): Promise<any> => {
         message: `Product with ID ${productId} not found`,
         success: false,
       });
+    }
+
+    // If name is being updated, check if another product already has this name
+    if (name !== undefined && name !== productDoc.data()?.name) {
+      const nameQuery = await db
+        .collection(dbName.PRODUCT)
+        .where("name", "==", name)
+        .get();
+      
+      // If any other product has this name, reject the update
+      if (!nameQuery.empty) {
+        return res.status(ResponseCode.CONFLICT).json({
+          message: "A product with this name already exists",
+          success: false,
+        });
+      }
     }
 
     // Update the product

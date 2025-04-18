@@ -1,15 +1,6 @@
 import { db } from "../firebase";
 import { dbName, ResponseCode } from "../enum";
-
-/**
- * Interface for Collection model
- */
-interface Collection {
-  name: string;
-  description: string;
-  products: string[];
-  createdAt?: string;
-}
+import { Collection } from "../models/collection";
 
 /**
  * Create a new collection
@@ -19,11 +10,23 @@ interface Collection {
  */
 export const createCollection = async (req: any, res: any): Promise<any> => {
   try {
-    const { name, description, products }: Collection = req.body;
+    const { name, description, products, images }: Collection = req.body;
     
     if (!name || !products || !Array.isArray(products) || products.length === 0) {
       return res.status(ResponseCode.BAD_REQUEST).json({
         message: "Name and at least one product ID are required",
+        success: false,
+      });
+    }
+
+    // Check if a collection with the same name already exists
+    const nameQuery = await db.collection(dbName.COLLECTION)
+      .where("name", "==", name)
+      .get();
+    
+    if (!nameQuery.empty) {
+      return res.status(ResponseCode.CONFLICT).json({
+        message: "A collection with this name already exists",
         success: false,
       });
     }
@@ -52,6 +55,11 @@ export const createCollection = async (req: any, res: any): Promise<any> => {
       products,
       createdAt: new Date().toISOString(),
     };
+
+    // Add images array if it exists
+    if (images && Array.isArray(images)) {
+      newCollection.images = images;
+    }
 
     const collectionDoc = await collectionRef.add(newCollection);
 
