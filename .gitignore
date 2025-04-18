@@ -1,0 +1,5 @@
+node_modules
+
+# Security
+firebase-service-account.json
+.env
