@@ -6,7 +6,7 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "heroku-postbuild": "npm run build"
+    "heroku-postbuild": "npm run build && ls -la dist/controller"
   },
   "engines": {
     "node": ">=18.0.0",
