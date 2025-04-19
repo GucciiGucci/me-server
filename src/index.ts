@@ -43,7 +43,7 @@ app.use(
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // Health check route
-app.post("/health", (_, res: Response) => {
+app.get("/health", (_, res: Response) => {
   res.status(200).json({
     message: "Server is healthy",
     timestamp: new Date().toISOString(),
