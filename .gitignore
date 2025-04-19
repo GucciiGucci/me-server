@@ -1,5 +1,21 @@
+# Dependencies
 node_modules
+package-lock.json
 
 # Security
 firebase-service-account.json
 .env
+
+# Build directory
+dist
+
+# Vercel
+.vercel
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
